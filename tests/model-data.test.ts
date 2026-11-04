@@ -273,3 +273,23 @@ test('reopening preserves records, correction history and publications and rejec
   assert.equal(b.bootstrap().datasets.length, 1); assert.equal(b.getRun(run.run_id).overrides.length, 1); assert.equal(row(b.getRun(run.run_id), 'AHU-01').normalized.manufacturer.value, 'Persisted correction'); assert.deepEqual(b.getExport(packet.export_id), frozen);
   statusError(() => createModelDataStore({ dbPath: path, workspace: 'fixture' }), 409, /another workspace/);
 });
+
+
+test('implicit normalized units canonicalize supported source aliases for formulas and corrections', t => {
+  const s = store(t), input = imported(), profileInput = sampleModelProfile() as Json;
+  input.elements.find((e: Json) => e.external_id === 'DUCT-01').properties.Length = { value: 2, unit: 'metres' };
+  delete profileInput.fields.find((f: Json) => f.key === 'length').unit;
+  const dataset = s.importDataset(input), profile = s.saveProfile(profileInput);
+  const run = s.run({ dataset_id: dataset.dataset_id, profile_id: profile.profile_id });
+  const duct = row(run, 'DUCT-01');
+  assert.equal(duct.normalized.length.raw_unit, 'metres');
+  assert.equal(duct.normalized.length.unit, 'm');
+  assert.equal(duct.normalized.length.value, 2);
+  assert.equal(metric(duct, 'duct-area').value, 5.2);
+  s.override({ run_id: run.run_id, element_key: duct.element_key, target: 'property', key: 'length', value: 3, reason: 'Test a value correction without changing the supported source unit.', reviewer: 'Local unit test reviewer' });
+  const corrected = row(s.getRun(run.run_id), 'DUCT-01');
+  assert.equal(corrected.normalized.length.value, 3);
+  assert.equal(corrected.normalized.length.unit, 'm');
+  assert.equal(corrected.normalized.length.raw_unit, 'metres');
+  assert.equal(corrected.normalized.length.raw_value, 2);
+});
