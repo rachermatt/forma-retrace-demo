@@ -1,0 +1,32 @@
+{
+  "schema_version": "forma-retrace.model-data/1",
+  "title": "Imported test extract · not a customer model",
+  "data_mode": "imported",
+  "source_description": "Hand-authored non-sensitive test properties for import validation; not a real project extraction.",
+  "models": [
+    {
+      "model_key": "test-mech",
+      "project_id": "test-project",
+      "project_name": "Import validation · test data",
+      "model_id": "test-model",
+      "model_name": "Test mechanical properties",
+      "version_id": "test-v1",
+      "format": "test property JSON",
+      "designation": "unverified",
+      "designation_basis": "Test input only; no For-Record or As-Built authority.",
+      "length_unit": "unknown"
+    }
+  ],
+  "elements": [
+    {
+      "model_key": "test-mech",
+      "external_id": "TEST-AHU-01",
+      "name": "Test AHU · import validation",
+      "category": "Air Handling Units",
+      "properties": {
+        "Manufacturer": { "value": "Test manufacturer" },
+        "Airflow": { "value": 1200, "unit": "L/s" }
+      }
+    }
+  ]
+}

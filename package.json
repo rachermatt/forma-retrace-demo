@@ -1,7 +1,7 @@
 {
   "name": "forma-retrace",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "engines": {
     "node": ">=24.19.0"
@@ -14,7 +14,8 @@
     "web:dev": "vite --host 127.0.0.1",
     "demo:setup": "node scripts/demo-setup.ts",
     "demo": "node scripts/demo.ts",
-    "demo:broader": "node scripts/broader-demo.ts"
+    "demo:broader": "node scripts/broader-demo.ts",
+    "model-data:process": "node scripts/model-data-process.ts"
   },
   "dependencies": {
     "lucide-react": "1.59.0",

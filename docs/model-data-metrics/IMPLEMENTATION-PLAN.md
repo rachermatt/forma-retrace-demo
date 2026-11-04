@@ -1,10 +1,10 @@
 # Model Data & Metrics: proposed development plan
 
-Status: **proposed backlog, not implemented functionality**. Read the [assessment](README.md), [native capability matrix](NATIVE-CAPABILITIES.md) and [APS options](APS-OPTIONS.md) first. Dependencies below are delivery gates; documentation that a capability exists is not proof of customer access or a completed integration.
+Status: **production backlog with a working local vertical slice delivered November 4, 2026**. The [implementation status](IMPLEMENTED.md) maps delivered behavior to these tickets; no ticket is considered fully complete merely because a local subset exists. Read the [assessment](README.md), [native capability matrix](NATIVE-CAPABILITIES.md) and [APS options](APS-OPTIONS.md) first. Dependencies below are delivery gates; documentation that a capability exists is not proof of customer access or a completed integration.
 
 ## Scope decision before development
 
-The supplied draft MVP requires room relationships and a nested grouping, while comment DD4 proposes deferring spatial classification. DD3/DD8 ask for minimal-interaction automation instead of a human-operated task wizard. Recommended resolution: make trusted metadata and automated exception processing the first release, and qualify spatial enrichment separately. The owner must confirm that revised MVP before treating this recommendation as committed scope.
+The supplied draft MVP requires room relationships and a nested grouping, while comment DD4 proposes deferring spatial classification. DD3/DD8 ask for minimal-interaction automation instead of a human-operated task wizard. Recommended resolution: make trusted metadata and automated exception processing the first release, and qualify spatial enrichment separately. The delivered increment includes explicitly unverified spatial candidates and nested groups so the body requirements can be explored without claiming that geometry qualification has passed. The metadata-first production recommendation still needs an owner decision.
 
 The business result is reusable approved historical information. It is not the number of workflow screens visited or the number of model elements selected.
 

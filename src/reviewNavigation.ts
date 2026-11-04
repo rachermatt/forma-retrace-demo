@@ -1,5 +1,5 @@
 /** URL context describes selected records, never an authorization grant or a saved finding. */
-export type ReviewPage = 'workspace' | 'field' | 'log' | 'packets' | 'connection' | 'operations' | 'assignments' | 'research';
+export type ReviewPage = 'workspace' | 'field' | 'log' | 'packets' | 'connection' | 'operations' | 'assignments' | 'research' | 'modeldata';
 export type ReviewSection = 'findings' | 'tasks' | 'photos' | 'reconciliation' | 'drafts';
 export type ReviewRoute = {
   page: ReviewPage;
@@ -17,7 +17,7 @@ export type ReviewRoute = {
   assignment_id?: string;
 };
 export const DEFAULT_REVIEW_ROUTE: Readonly<ReviewRoute> = Object.freeze({ page: 'operations', workspace: 'fixture', section: 'findings' });
-const pagePaths: Record<ReviewPage, string> = { workspace: 'evidence-workspace', field: 'element-review', log: 'review-log', packets: 'evidence-packets', connection: 'aps-connection', operations: 'decision-queue', assignments: 'field-assignments', research: 'integration-research' };
+const pagePaths: Record<ReviewPage, string> = { workspace: 'evidence-workspace', field: 'element-review', log: 'review-log', packets: 'evidence-packets', connection: 'aps-connection', operations: 'decision-queue', assignments: 'field-assignments', research: 'integration-research', modeldata: 'model-data' };
 const aliases: Record<string, ReviewPage> = { workspace: 'workspace', field: 'field', log: 'log', packets: 'packets', connection: 'connection', 'fixed-packets': 'packets' };
 const sections: readonly string[] = ['findings', 'tasks', 'photos', 'reconciliation', 'drafts'];
 const references = { capture: 'capture_id', element: 'element_id', project: 'project_id', scope: 'scope_id', version: 'model_version_id', task: 'task_id', draft: 'draft_id', entry: 'entry_id', item: 'item_id', assignment: 'assignment_id' } as const;

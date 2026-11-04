@@ -13,6 +13,8 @@ import { createFieldOperations } from './field-operations.ts';
 import { createResearchOperations } from './research-operations.ts';
 import { createCommercialOperations } from './commercial-operations.ts';
 import { createHash } from 'node:crypto';
+import { createModelDataStore } from './model-data.ts';
+import { sampleModelDataset } from './model-data-fixtures.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
@@ -55,6 +57,14 @@ export function createApp(config:Config, deps: {store?:any; aps?:any; deployment
   const reviewStores=new Map<string,ReturnType<typeof createReviewStore>>();
   const workflowStores=new Map<string,ReturnType<typeof createWorkflows>>();
   const operationStores=new Map<string,any>();
+  const modelDataStores=new Map<string,ReturnType<typeof createModelDataStore>>();
+  function modelDataWorkspace(name:string) {
+    if(!['fixture','local'].includes(name)) fail(404,'Model-data workspace not found.');
+    if(publicDemo && name!=='fixture') fail(409,'Private model-data libraries are available only in the local application.');
+    if(config.mode==='live' && name==='fixture') fail(409,'Synthetic model data is separate from live mode. Choose the imported model-data library.');
+    if(!modelDataStores.has(name)) modelDataStores.set(name,createModelDataStore({dbPath:resolve(config.dataDir,`model-data-${name}.sqlite`),workspace:name as 'fixture'|'local'}));
+    return modelDataStores.get(name)!;
+  }
   function workspace(name:string) {
     if(config.mode!=='fixture') fail(409,'Local review is unavailable in live mode. Verified project/model access is required before live review.');
     if(publicDemo && name==='local') fail(409,'Local photographs and private project workspaces are available only in the local application. This public deployment contains fixed synthetic evidence.');
@@ -109,10 +119,12 @@ export function createApp(config:Config, deps: {store?:any; aps?:any; deployment
     {name:'Manual plan placement',implemented:true,locally_tested:true,live_verified:false,status:'Manual association only'},
     {name:'Immutable evidence packets',implemented:true,locally_tested:true,live_verified:false,status:'HTML + JSON with source hashes'},
     {name:'APS OAuth and project reads',implemented:true,locally_tested:true,live_verified:false,status:'User sign-in and project access required'},
-    {name:'APS model viewing and source import',implemented:false,locally_tested:false,live_verified:false,status:'Deferred; representative model required'},
+    {name:'APS source browsing and property import',implemented:true,locally_tested:true,live_verified:false,status:'Read-only authorized source chain and server-held import receipts; representative live model access unverified'},
+    {name:'Embedded APS model viewing',implemented:false,locally_tested:false,live_verified:false,status:'Requires qualified server-only derivative/WebSocket proxy and representative authorized model'},
     {name:'Local photograph import and element findings',implemented:true,locally_tested:true,live_verified:false,status:'Separate local originals; manually configured BIM references'},
     {name:'Recapture and progress reconciliation',implemented:true,locally_tested:true,live_verified:false,status:'Human findings, manual quantities, local drafts'},
     {name:'Live Issue publication',implemented:false,locally_tested:false,live_verified:false,status:'Disabled · preview/export only'},
+    {name:'Model Data & Metrics',implemented:true,locally_tested:true,live_verified:false,status:'Versioned property extracts, profiles, classifications, candidate spatial review and fixed dataset exports'},
   ];
   const server=http.createServer(async(req,res)=>{
     res.setHeader('X-Content-Type-Options','nosniff');
@@ -162,6 +174,55 @@ export function createApp(config:Config, deps: {store?:any; aps?:any; deployment
       }
       if(path==='/auth/logout' && req.method==='POST') {aps.logout(jar.aps_session);setCookie('aps_session','',0);send({ok:true});return;}
       if(path==='/api/aps/projects' && req.method==='GET') {requireSession();const result=await aps.projects(jar.aps_session);send({projects:result.data});return;}
+      if(path.startsWith('/api/model-source/')) {
+        requireSession();
+        if(publicDemo) fail(403,'Live model sources and Autodesk sign-in are disabled in the public synthetic demo.');
+        if(config.mode!=='live') fail(409,'Live Autodesk model browsing requires live mode and authorized sign-in. Imported JSON properties can be reviewed in the separate local model-data library.');
+        const route=path.slice('/api/model-source/'.length);
+        const parameter=(key:string)=>{const values=url.searchParams.getAll(key);if(values.length!==1||!values[0])fail(400,'Select one '+key+' reference.');return values[0];};
+        const allowedQuery:Record<string,string[]>={'projects':[],'top-folders':['project_id'],'folder-contents':['project_id','folder_id'],'versions':['project_id','item_id'],'viewables':['project_id','version_id']};
+        if(req.method==='GET' && Object.hasOwn(allowedQuery,route)) {
+          if([...url.searchParams.keys()].some(key=>!allowedQuery[route].includes(key)))fail(400,'Unsupported model-source query parameter.');
+          if(route==='projects'){const result=await aps.projects(jar.aps_session);send({entries:result.data.map((p:any)=>({id:p.id,name:p.attributes.name})),read_only:true});return;}
+          if(route==='top-folders'){send(await aps.modelTopFolders(jar.aps_session,parameter('project_id')));return;}
+          if(route==='folder-contents'){send(await aps.modelFolderContents(jar.aps_session,parameter('project_id'),parameter('folder_id')));return;}
+          if(route==='versions'){send(await aps.modelItemVersions(jar.aps_session,parameter('project_id'),parameter('item_id')));return;}
+          if(route==='viewables'){send(await aps.modelViewables(jar.aps_session,parameter('project_id'),parameter('version_id')));return;}
+        }
+        if(route==='properties'&&req.method==='POST') {
+          const input=await body(req);if(Object.keys(input).some(key=>!['project_id','version_id','viewable_id'].includes(key))||['project_id','version_id','viewable_id'].some(key=>typeof input[key]!=='string'))fail(400,'Select exact project, version and viewable references.');
+          send(await aps.modelProperties(jar.aps_session,input.project_id,input.version_id,input.viewable_id));return;
+        }
+        if(route==='import'&&req.method==='POST') {
+          const input=await body(req);if(Object.keys(input).some(key=>key!=='extract_receipt_id')||typeof input.extract_receipt_id!=='string')fail(400,'Use the server-issued property-extract receipt.');
+          const extract=await aps.takeModelExtract(jar.aps_session,input.extract_receipt_id);
+          send(modelDataWorkspace('local').importDataset(extract,{verifiedSource:true}),201);return;
+        }
+        fail(404,'Model-source operation unavailable. No external writes are provided.');
+      }
+      const modelDataRoute=path.match(/^\/api\/model-data\/([^/]+)\/(.+)$/);
+      if(modelDataRoute) {
+        requireSession();const name=modelDataRoute[1],route=modelDataRoute[2];
+        if(route==='sample'&&req.method==='GET') {if(name!=='fixture'||config.mode!=='fixture')fail(409,'The sample is synthetic and belongs to the fixture workspace.');res.setHeader('Content-Disposition','attachment; filename="forma-retrace-synthetic-model-properties.json"');send(sampleModelDataset());return;}
+        const models=modelDataWorkspace(name);
+        if(route==='bootstrap'&&req.method==='GET'){send({...models.bootstrap(),...(deployment?{deployment}:{})});return;}
+        if(route==='search'&&req.method==='GET'){const allowed=['q','project_id','category','classification','designation'];if([...url.searchParams.keys()].some(key=>!allowed.includes(key)||url.searchParams.getAll(key).length!==1))fail(400,'Unsupported or repeated model-data search filter.');send(models.search(Object.fromEntries(url.searchParams)));return;}
+        const dataset=route.match(/^datasets\/([^/]+)$/);if(dataset&&req.method==='GET'){send(models.dataset(decodeURIComponent(dataset[1])));return;}
+        const run=route.match(/^runs\/([^/]+)$/);if(run&&req.method==='GET'){send(models.getRun(decodeURIComponent(run[1])));return;}
+        const report=route.match(/^exports\/([^/]+)\/(manifest|csv|report)$/);
+        if(report&&req.method==='GET') {
+          const saved=models.getExport(decodeURIComponent(report[1]));const format=report[2];const inline=format==='report'&&url.searchParams.get('inline')==='1';
+          res.setHeader('Content-Disposition',(inline?'inline':'attachment')+'; filename="forma-retrace-model-data-'+report[1].replace(/[^a-zA-Z0-9_-]/g,'_')+'.'+(format==='manifest'?'json':format==='report'?'html':'csv')+'"');
+          if(format==='manifest')send(saved.manifest);else{res.setHeader('Content-Security-Policy',"sandbox; default-src 'none'; img-src data:; style-src 'unsafe-inline'");res.writeHead(200,{'Content-Type':format==='csv'?'text/csv; charset=utf-8':'text/html; charset=utf-8'});res.end(format==='csv'?saved.csv:saved.html);}return;
+        }
+        if(req.method==='POST') {
+          if(route==='datasets'&&name==='fixture')fail(409,'Import model-property files into the separate private imported library. Synthetic sample sources remain separate.');
+          const input=await body(req,route==='datasets'?16*1024*1024:1024*1024);
+          const routes:Record<string,(input:any)=>any>={datasets:models.importDataset,profiles:models.saveProfile,groups:models.saveGroup,runs:models.run,overrides:models.override,exports:models.publish};
+          if(Object.hasOwn(routes,route)){send(routes[route](input),201);return;}
+        }
+        fail(404,'Model-data operation unavailable.');
+      }
       const v3=path.match(/^\/api\/v3\/([^/]+)\/(.+)$/);
       if(v3) {
         requireSession(); const {review,operations}=workspace(v3[1]); const {scopes,field,research,commercial,base,combinedQueue}=operations; const route=v3[2];
@@ -267,7 +328,7 @@ export function createApp(config:Config, deps: {store?:any; aps?:any; deployment
     }
   });
   let closed=false;
-  return {server,store,aps,close:()=>{if(closed)return;closed=true;server.close();for(const review of reviewStores.values())review.close();store.close();localSessions.clear();}};
+  return {server,store,aps,close:()=>{if(closed)return;closed=true;server.close();for(const review of reviewStores.values())review.close();for(const models of modelDataStores.values())models.close();store.close();localSessions.clear();}};
 }
 if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const envFile=resolve(ROOT,'.env'); if(existsSync(envFile)) process.loadEnvFile(envFile);

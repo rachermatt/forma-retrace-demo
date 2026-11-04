@@ -1,6 +1,6 @@
 # Model Data & Metrics: native coverage and development scope
 
-Assessment date: November 4, 2026. Status: **requirements assessment and proposed workstream; model-data functionality is not implemented by this documentation update**.
+Assessment date: November 4, 2026. **A working local model-data increment is now implemented.** Read the [delivery status and walkthrough](IMPLEMENTED.md) for the current application. The native-product assessment below remains the rationale and production scope; it is not a claim of live customer access or complete enterprise delivery.
 
 ## Desired outcome
 
@@ -29,7 +29,7 @@ The evidence supports a substantial native-product contribution. It does not est
 
 The recommended development boundary is the governed connection between these services and the estimating use case. Each proof-of-fit may remove a custom component from the backlog.
 
-## Current implementation in both repositories
+## Starting implementation audited before this increment
 
 The application was inspected in `autodesk-platform-services/forma-retrace` at `0e17ad7` and `rachermatt/forma-retrace-demo` at `c09570b`. Their application/server implementations match for this audit. They remain an evidence-review prototype with a public synthetic, read-only deployment.
 
@@ -42,7 +42,7 @@ The application was inspected in `autodesk-platform-services/forma-retrace` at `
 | A bounded image-experiment research workbench | Proposal/decision separation | A model classification taxonomy, property rules and processing workers. Image labels such as duct/terminal are not an estimating classification engine. [Research operations](../../server/research-operations.ts). |
 | Fixed HTML/JSON packets and isolated local workspaces | Provenance and immutable-snapshot patterns | Typed dataset exports, multiple-project indexing, organization identities/grants and durable background processing. Existing evidence packets retain their current contract. [Packet implementation](../../server/commercial-operations.ts), [server boundaries](../../server/index.ts). |
 
-A source-reviewed assessment is different from a working adapter. Neither repository currently demonstrates the attachment's complete model-data MVP or a live organization-wide model-property warehouse.
+That audit identified the starting gaps. The subsequent [implemented increment](IMPLEMENTED.md) adds a source adapter and local metadata/rules/review/export workflow in both repositories. The complete enterprise MVP, validated geometry and organization-wide warehouse still have the dependencies listed in the implementation plan.
 
 ## Proposed implementation sequence
 
@@ -76,4 +76,4 @@ The assessment should not freeze older assumptions about Autodesk capabilities:
 
 External product claims link to official documentation in this assessment, the [native matrix](NATIVE-CAPABILITIES.md) and [API options](APS-OPTIONS.md), checked on November 4, 2026. Customer entitlements, model access, representative source files, category-specific accuracy and organization reuse policy are not established by those documents.
 
-This update adds assessment and planning documents only. Application code, the public demo's read-only behavior, historical review records, fixed exports, the APS README structure, MIT license and ignore protections are preserved.
+The original assessment-only update has been followed by application implementation. Current delivered behavior, tests and remaining dependencies are recorded in [IMPLEMENTED.md](IMPLEMENTED.md). The public demo remains read-only; historical evidence records and exports retain their separate contracts. The APS README structure, MIT license and ignore protections are preserved.

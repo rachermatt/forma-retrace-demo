@@ -1,4 +1,5 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { createApsModels } from './aps-models.ts';
 
 const API_ORIGIN = 'https://developer.api.autodesk.com';
 const AUTHORIZE_URL = `${API_ORIGIN}/authentication/v2/authorize`;
@@ -169,7 +170,47 @@ export function createAps(options: ApsOptions) {
     return url.href;
   }
 
-  return {
+  async function readModelResource(sessionId: string | undefined, path: string): Promise<unknown> {
+    const session = requireSession(sessionId);
+    if (!path.startsWith('/') || path.startsWith('//')) throw new ApsError(400, 'Invalid APS model resource path.');
+    const url = new URL(path, API_ORIGIN);
+    if (url.origin !== API_ORIGIN || url.username || url.password || url.hash || ![
+      `/project/v1/hubs/${dataHubId}/projects/`, '/data/v1/projects/', '/modelderivative/v2/designdata/',
+    ].some(prefix => url.pathname.startsWith(prefix))) throw new ApsError(400, 'APS model resource is outside the read-only adapter.');
+    if (session.expiresAt <= now() + 60_000) await refresh(sessionId!, session);
+    const access = session.accessToken;
+    let response = await request(url.href, { method: 'GET', headers: { Authorization: `Bearer ${access}`, Accept: 'application/json' } });
+    if (response.status === 401) {
+      await refresh(sessionId!, session, access);
+      response = await request(url.href, { method: 'GET', headers: { Authorization: `Bearer ${session.accessToken}`, Accept: 'application/json' } });
+    }
+    if (sessions.get(sessionId!) !== session || session.deadline <= now()) throw new ApsError(401, 'The local session has ended. Sign in again.');
+    if (response.status === 202) throw new ApsError(409, 'APS is still preparing this model resource. Retry after derivative processing completes.');
+    if (!response.ok) {
+      if (response.status === 401) { sessions.delete(sessionId!); throw new ApsError(401, 'APS rejected the user session. Sign in again.'); }
+      if (response.status === 403) throw new ApsError(403, 'APS denied the selected model resource. Verify folder/model access and View + Download permission.');
+      if (response.status === 404) throw new ApsError(404, 'The selected model resource is unavailable or inaccessible for this user.');
+      throw new ApsError(response.status === 429 ? 503 : 502, 'APS could not return the selected model resource. Retry later.');
+    }
+    const declared = Number(response.headers.get('content-length') || 0);
+    if (declared > 30 * 1024 * 1024) throw new ApsError(413, 'The model resource exceeds the local extraction limit. Use an approved subset.');
+    if (!response.body) throw new ApsError(502, 'APS returned an empty model resource.');
+    const reader = response.body.getReader(); const chunks: Buffer[] = []; let size = 0;
+    try {
+      while (true) {
+        const chunk = await reader.read(); if (chunk.done) break;
+        size += chunk.value.byteLength;
+        if (size > 30 * 1024 * 1024) { await reader.cancel(); throw new ApsError(413, 'The model resource exceeds the local extraction limit. Use an approved subset.'); }
+        chunks.push(Buffer.from(chunk.value));
+      }
+    } catch (error) { if (error instanceof ApsError) throw error; throw new ApsError(502, 'APS returned an unreadable model resource.'); }
+    if (sessions.get(sessionId!) !== session || session.deadline <= now()) throw new ApsError(401, 'The local session has ended. Sign in again.');
+    const text = Buffer.concat(chunks).toString('utf8');
+    try { return JSON.parse(text); } catch { throw new ApsError(502, 'APS returned invalid model JSON.'); }
+  }
+
+  let modelSources: ReturnType<typeof createApsModels> | undefined;
+  const api = {
     status(sessionId?: string) {
       purge();
       const session = options.mode === 'live' && sessionId ? sessions.get(sessionId) : undefined;
@@ -270,7 +311,11 @@ export function createAps(options: ApsOptions) {
 
     logout(sessionId?: string) {
       if (sessionId) sessions.delete(sessionId);
+      modelSources?.clearSession(sessionId);
       // Local logout discards server-held tokens; it does not sign out of Autodesk globally.
     },
   };
+  modelSources = createApsModels({ hubId: dataHubId, read: readModelResource, projects: api.projects, now, fail: (status, message) => { throw new ApsError(status, message); } });
+  const { clearSession: _clearSession, ...modelMethods } = modelSources;
+  return { ...api, ...modelMethods };
 }

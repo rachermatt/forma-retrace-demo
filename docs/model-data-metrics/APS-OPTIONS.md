@@ -1,6 +1,14 @@
 # APS options for model data and metrics
 
-Verification date: **November 4, 2026**. This register distinguishes documented Autodesk capabilities from adapters that would require development and qualification. Documentation verification does not establish customer entitlement, project access, model eligibility, production readiness or successful integration. It does not implement the model-data workstream. The existing evidence-review workflow and its security boundaries remain the starting point; see [APS verification](../APS-VERIFICATION.md).
+Verification date: **November 4, 2026**. This register distinguishes documented Autodesk capabilities, implemented local adapters and capabilities that still require development and qualification. Documentation verification does not establish customer entitlement, project access, model eligibility, production readiness or successful live integration. The existing evidence-review workflow and its security boundaries remain the starting point; see [APS verification](../APS-VERIFICATION.md).
+
+## Current implementation status
+
+The application now implements a read-only, signed-in **Data Management → Model Derivative** path: configured-hub projects, permitted folders, model items, exact versions, ready 3D viewables and server-side property snapshots. A session-bound receipt authorizes import into the separate local Model Data & Metrics library. Exact source/version references and raw properties are retained; missing units, geometry and source designation remain unknown/unverified. Browser-authored JSON cannot claim verified APS provenance. **29 mocked OAuth/source tests pass; no live customer model or end-user project authorization has been verified.** See [implementation and validation details](../APS-VERIFICATION.md), [model-access dependencies](../MODEL-ACCESS.md), the [source adapter](../../server/aps-models.ts) and [source tests](../../tests/aps-models.test.ts).
+
+The browser/extract hierarchy follows Autodesk's current [hubs-browser tutorial](https://get-started.aps.autodesk.com/tutorials/hubs-browser/data) and [Model Derivative properties contract](https://aps.autodesk.com/en/docs/model-derivative/v2/reference/http/urn-metadata-guid-properties-GET/). This initial adapter does not integrate AEC Data Model, Model Properties indexing, Datum, SSA, webhooks or subscriptions. Those options below retain their documented native-product assessment and qualification gates.
+
+Embedded APS Viewer and element highlighting remain a specific dependency: qualify an authenticated SVF/SVF2 derivative and WebSocket proxy with per-model/version authorization and strict upstream allowlists while retaining all APS tokens on the server. The interface reports this blocker and can offer an APS-supplied, allowlisted native Autodesk model-view link. It does not simulate embedded viewing. [Official Viewer proxy pattern](https://aps.autodesk.com/blog/proxying-aps-viewer)
 
 ## Access and extraction options
 

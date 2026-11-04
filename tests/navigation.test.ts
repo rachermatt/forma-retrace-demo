@@ -62,3 +62,12 @@ test('broader decision and direct assignment routes preserve stable item and tas
   for(const page of ['operations','assignments','research'] as const){const route={...DEFAULT_REVIEW_ROUTE,page,workspace:'local' as const,item_id:'item-drawing-A',assignment_id:'assignment-12'};const parsed=parseReviewHash(serializeReviewRoute(route));assert.equal(parsed.ok,true);if(parsed.ok)assert.deepEqual(parsed.route,route);}
   assert.equal(parseReviewHash('#/field-assignments?workspace=local&assignment=a&assignment=b').ok,false);
 });
+
+test('model-data library has a stable destination without changing earlier evidence links', () => {
+  const route={...DEFAULT_REVIEW_ROUTE,page:'modeldata' as const};
+  assert.equal(serializeReviewRoute(route),'#/model-data?workspace=fixture');
+  const parsed=parseReviewHash('#/model-data?workspace=fixture');
+  assert.equal(parsed.ok,true);if(parsed.ok)assert.deepEqual(parsed.route,route);
+  assert.equal(parseReviewHash('#/model-data/extra').ok,false);
+  assert.equal(serializeReviewRoute(sample),'#/element-review/findings?workspace=fixture&capture=capture-1&element=DUCT-03&project=fixture-project&scope=scope-1&version=v7');
+});
