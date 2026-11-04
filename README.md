@@ -6,6 +6,8 @@ The interface follows the Forma Build visual references, with a white product he
 
 Version **0.3** adds a weekly decision queue, BIM-optional stable scope and dossiers, explicit reference mappings, planned field assignments, a persistent browser capture queue, versioned measurement templates, local follow-through tracking, purpose-based packets, lookahead/handover checklists and a bounded research evaluation workbench. [Delivery status, walkthrough and remaining dependencies](docs/development/BROADER-STATUS.md). These are local human-reviewed workflows; shared mobile deployment, live Autodesk publication and actual recognition accuracy remain unverified.
 
+A proposed [Model Data & Metrics workstream](docs/model-data-metrics/README.md) assesses native Autodesk coverage and the remaining development for reusable For-Record/As-Built metadata, classifications and quantities across authorized projects. It includes a [phased implementation plan](docs/model-data-metrics/IMPLEMENTATION-PLAN.md); these proposed model-data capabilities are not implemented by the current evidence-review demo.
+
 ## Run
 
 Requires Node.js **24.19 or later**. Get the source:

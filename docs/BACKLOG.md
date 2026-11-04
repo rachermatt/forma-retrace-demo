@@ -27,3 +27,7 @@ The 0.2 pilot is one project, one location/floor and one trade package, across s
 | Installed-quantity estimation | Surveyed/manual ground-truth quantities with units, fixed scope/version, capture coverage, occlusion, independent measurement and acceptance references. | Predeclare allowable bias/error and coverage requirements by trade/unit. Test double counting across dates and partial visibility. No percent complete without a validated denominator/method. Human measurement approval remains a separate record. |
 
 Numeric research success thresholds are deliberately **not yet agreed**. This is a dependency to resolve with the pilot team before collecting evaluation results; no capability is marked validated by a polished demo.
+
+## Proposed model-data reuse workstream
+
+The November 4, 2026 requirements introduce a distinct model-analysis and historical-data outcome alongside the evidence workflow. See the [native coverage and repository gap assessment](model-data-metrics/README.md) and [MDM-01 through MDM-11](model-data-metrics/IMPLEMENTATION-PLAN.md) for dependencies and acceptance criteria. Prefer native configuration and service reuse after a proof-of-fit; qualify the metadata/automation-first MVP and the room-classification scope decision before implementation. This backlog entry does not mark a live model-data or automated-quantity capability as delivered.
