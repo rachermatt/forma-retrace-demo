@@ -31,3 +31,8 @@ Numeric research success thresholds are deliberately **not yet agreed**. This is
 ## Proposed model-data reuse workstream
 
 The November 4, 2026 requirements introduce a distinct model-analysis and historical-data outcome alongside the evidence workflow. See the [native coverage and repository gap assessment](model-data-metrics/README.md) and [MDM-01 through MDM-11](model-data-metrics/IMPLEMENTATION-PLAN.md) for dependencies and acceptance criteria. Prefer native configuration and service reuse after a proof-of-fit; qualify the metadata/automation-first MVP and the room-classification scope decision before implementation. This backlog entry does not mark a live model-data or automated-quantity capability as delivered.
+
+
+## Model Data & Metrics increment — November 4, 2026
+
+A working local source/property, normalization, classification, metric, spatial-candidate, group, review and fixed-export workflow is implemented. [Current delivery status](model-data-metrics/IMPLEMENTED.md) distinguishes that slice from MDM-01–11 production acceptance. Remaining work includes representative live-source qualification, embedded Viewer, durable unattended jobs, enterprise identity/reuse grants, native classification/Datum bridges, solid-geometry validation and reference-data accuracy tests. [Dependencies and acceptance criteria](model-data-metrics/IMPLEMENTATION-PLAN.md).

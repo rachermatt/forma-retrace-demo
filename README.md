@@ -6,7 +6,7 @@ The interface follows the Forma Build visual references, with a white product he
 
 Version **0.3** adds a weekly decision queue, BIM-optional stable scope and dossiers, explicit reference mappings, planned field assignments, a persistent browser capture queue, versioned measurement templates, local follow-through tracking, purpose-based packets, lookahead/handover checklists and a bounded research evaluation workbench. [Delivery status, walkthrough and remaining dependencies](docs/development/BROADER-STATUS.md). These are local human-reviewed workflows; shared mobile deployment, live Autodesk publication and actual recognition accuracy remain unverified.
 
-A proposed [Model Data & Metrics workstream](docs/model-data-metrics/README.md) assesses native Autodesk coverage and the remaining development for reusable For-Record/As-Built metadata, classifications and quantities across authorized projects. It includes a [phased implementation plan](docs/model-data-metrics/IMPLEMENTATION-PLAN.md); these proposed model-data capabilities are not implemented by the current evidence-review demo.
+Version **0.4** adds the working **Model Data & Metrics** workspace: source catalogs and JSON imports, typed property/unit normalization, versioned classification rules, independent quantities per assignment, data-quality review, federated room candidates, nested groups and fixed CSV/JSON/HTML datasets. A populated synthetic example is included, with editable private local extracts kept separate. Live mode adds authorized Autodesk folder/file/version/viewable browsing and server-held property-extraction receipts. [Implemented features, walkthrough and remaining production dependencies](docs/model-data-metrics/IMPLEMENTED.md).
 
 ## Run
 
@@ -27,7 +27,7 @@ npm start
 
 Open **http://localhost:8080/**. You can also double-click `Start Forma ReTrace.command`. Keep its terminal open while using the application. The app binds to the local computer only.
 
-The application defaults to `fixture` mode and runs locally without APS credentials. `.env.example` contains variable names and safe defaults only. For live APS project discovery, copy it to a private `.env` and supply your own application credentials and project-bearing hub. `.env` is ignored by Git and excluded from shareable bundles.
+The application defaults to `fixture` mode and runs locally without APS credentials. `.env.example` contains variable names and safe defaults only. For live APS source browsing and property extraction, copy it to a private `.env` and supply your own application credentials and project-bearing hub. `.env` is ignored by Git and excluded from shareable bundles.
 
 ## Run the saved synthetic demonstration
 
@@ -54,6 +54,12 @@ PORT=8083 npm run demo -- --data-dir data/broader-demo
 ```
 
 Open **http://localhost:8083/**. Setup first restores the original seed, then records a synthetic drawing-only scope journey, planned capture, idempotent receipt, independent findings, manual quantities, local RFI, first packet, later correction and successor packet. It refuses an existing directory and never loads `.env`. It stores record IDs in `broader-demo-records.json` in that isolated directory. The original four packets remain unchanged. [Example weekly report](docs/development/examples/weekly-review.html) and [corrected successor](docs/development/examples/concealment-successor.html) are fixed copies from the verified example.
+
+## Try Model Data & Metrics
+
+Open the new sidebar destination and inspect equipment attributes, independent classification quantities, room candidates and fixed dataset exports. **Synthetic demonstration** is populated; **Private imported property extracts** starts empty and supports validated JSON imports, editable profiles, reasoned corrections and saved exports. Source-model quantities remain separate from observed installation and payment decisions.
+
+Follow the [complete model-data walkthrough](docs/model-data-metrics/IMPLEMENTED.md) and [versioned import contract](docs/model-data-metrics/DATA-CONTRACT.md). The included [test extract](docs/model-data-metrics/examples/import-test-dataset.json) is hand-authored test data, not a customer model. The hosted Vercel example remains synthetic and read-only. For browser-independent local processing, use `npm run model-data:process -- --data-dir data --dataset-id <id> --profile-id <id>` with already saved local IDs.
 
 ## Try the element workflow
 
@@ -98,7 +104,7 @@ APP_MODE=live npm start
 
 Open the **APS connection** tab, choose **Sign in with Autodesk**, complete consent if needed, then request projects. Use `localhost`, matching the registered callback, rather than `127.0.0.1` for this flow. The allowed hub is fixed server-side. Failure or missing access produces an error and never substitutes synthetic data.
 
-Successful app authentication was checked separately. Real user consent, hub access, project membership and representative model access remain unverified until that flow succeeds. Live mode currently offers project discovery only; model viewing, APS capture import, live assessments and external Issue/RFI creation remain gated. The new local photograph importer is independent of APS and disabled in live mode. See the [exact model-access dependency and official API checks](docs/MODEL-ACCESS.md). No live Issue writes are enabled.
+Successful app authentication was checked separately. Real user consent, hub access, project membership and representative model access remain unverified until that flow succeeds. Live mode supports authorized project/folder/file/exact-version/3D-viewable discovery and read-only property extraction into the private Model Data & Metrics library. This is covered by mocked upstream tests; actual customer model access is unverified. Embedded Viewer/highlighting still requires a qualified token-preserving derivative/CDN/WebSocket proxy. APS capture import, live evidence assessments and external Issue/RFI creation remain gated. The local photograph importer is independent of APS and disabled in live mode; the private model-data library works in either mode. See the [exact model-access dependency and official API checks](docs/MODEL-ACCESS.md). No live Issue writes are enabled.
 
 ## Validate
 
